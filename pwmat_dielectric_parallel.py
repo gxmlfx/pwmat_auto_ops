@@ -272,6 +272,10 @@ class StatusStore:
                     "updated_at": now_text(),
                 },
             )
+        self._data["run_times"] = [str(t) for t in times]
+        self._data["run_started_at"] = now_text()
+        self._data["status"] = "running"
+        self._data["message"] = "Current run initialized"
         self._write_locked()
 
     def _write_locked(self) -> None:
@@ -1231,9 +1235,20 @@ def clear_all_out_wg(ctx: Context) -> None:
 
 
 def print_brief_status(data: Dict) -> None:
-    times = data.get("times", {})
-    if not isinstance(times, dict):
-        times = {}
+    all_times = data.get("times", {})
+    if not isinstance(all_times, dict):
+        all_times = {}
+
+    run_time_keys = data.get("run_times")
+    if isinstance(run_time_keys, list) and run_time_keys:
+        selected_keys = [str(t) for t in run_time_keys]
+    else:
+        selected_keys = list(all_times.keys())
+
+    ordered = []
+    for key in selected_keys:
+        if key in all_times:
+            ordered.append((key, all_times[key]))
 
     def sort_key(item: Tuple[str, Dict]) -> int:
         try:
@@ -1241,14 +1256,29 @@ def print_brief_status(data: Dict) -> None:
         except (TypeError, ValueError):
             return 10**9
 
-    ordered = sorted(times.items(), key=sort_key)
+    ordered = sorted(ordered, key=sort_key)
     counts: Dict[str, int] = {}
     for _, item in ordered:
         status = str(item.get("status", "pending"))
         counts[status] = counts.get(status, 0) + 1
 
-    print(f"Overall : {data.get('status', 'unknown')}")
+    statuses = {
+        str(item.get("status", "pending")).lower() for _, item in ordered
+    }
+    if statuses.intersection({"running", "step_completed"}):
+        overall = "running"
+    elif statuses.intersection({"failed"}):
+        overall = "failed"
+    elif statuses.intersection({"pending"}):
+        overall = "pending"
+    elif ordered and statuses == {"completed"}:
+        overall = "completed"
+    else:
+        overall = str(data.get("status", "unknown"))
+
+    print(f"Overall : {overall}")
     print(f"PID     : {data.get('pid', '')}")
+    print(f"Started : {data.get('run_started_at', data.get('started_at', ''))}")
     print(f"Updated : {data.get('updated_at', '')}")
     print(f"Total   : {len(ordered)}")
     print(
