@@ -16,14 +16,17 @@ README.md                      使用说明
 ## 环境要求
 
 - MCloud 已加载好的 PWMAT 环境；
-- Python 3.8 或更高版本；
+- Python 3.8.3；
 - Slurm 命令：`sbatch`、`squeue`、`sacct`、`scancel`。
 
-必须使用 `python3`，不要使用可能指向 Python 2 的 `python`：
+每次进入新的 Shell 后，必须先加载 Python 模块：
 
 ```bash
-python3 --version
+module load python/3.8.3
+python --version
 ```
+
+加载后，`python` 会指向 Python 3.8.3。本文所有命令统一使用 `python`。如果跳过 `module load`，系统默认的 `python` 可能仍指向 Python 2。
 
 脚本不需要额外安装 Python 第三方包。
 
@@ -76,7 +79,9 @@ FINAL_DIELECTRIC_FILE = "dielectric_imag.dat"
 默认运行就是智能模式，不需要区分“新算”和“续算”：
 
 ```bash
-python3 pwmat_dielectric_parallel.py \
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py \
   --daemon \
   --max-parallel 4
 ```
@@ -99,13 +104,17 @@ python3 pwmat_dielectric_parallel.py \
 只处理一个时刻：
 
 ```bash
-python3 pwmat_dielectric_parallel.py --daemon --time 58
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py --daemon --time 58
 ```
 
 处理多个时刻：
 
 ```bash
-python3 pwmat_dielectric_parallel.py \
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py \
   --daemon \
   --times 58,60,62,64 \
   --max-parallel 2
@@ -114,7 +123,9 @@ python3 pwmat_dielectric_parallel.py \
 使用代码顶部配置的 `CALC_TIMES`：
 
 ```bash
-python3 pwmat_dielectric_parallel.py --daemon --all
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py --daemon --all
 ```
 
 `--time 58` 和 `--times 58,60` 同样会先执行完整的智能判断，不会绕过最终文件检查。
@@ -124,7 +135,9 @@ python3 pwmat_dielectric_parallel.py --daemon --all
 `--daemon` 会让 Python 调度程序脱离终端运行：
 
 ```bash
-python3 pwmat_dielectric_parallel.py \
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py \
   --daemon \
   --max-parallel 4
 ```
@@ -148,8 +161,9 @@ ps -fp $(cat <BASE_DIR>/logs/pwmat_parallel.pid)
 推荐使用 `watch`：
 
 ```bash
+module load python/3.8.3
 watch -n 5 -d \
-  'python3 pwmat_dielectric_parallel.py --show-status'
+  'python pwmat_dielectric_parallel.py --show-status'
 ```
 
 状态视图会优先显示：
@@ -179,7 +193,9 @@ cat <BASE_DIR>/logs/pwmat_parallel_status.json
 可以通过命令行覆盖目录，避免修改源码：
 
 ```bash
-python3 pwmat_dielectric_parallel.py \
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py \
   --daemon \
   --base-dir /data/home/wangl/能量A \
   --source-dir /data/home/wangl/pwmat_auto_ops/sources \
@@ -190,7 +206,9 @@ python3 pwmat_dielectric_parallel.py \
 使用自定义目录查询状态时，必须传入同样的路径：
 
 ```bash
-python3 pwmat_dielectric_parallel.py \
+module load python/3.8.3
+
+python pwmat_dielectric_parallel.py \
   --show-status \
   --base-dir /data/home/wangl/能量A
 ```
@@ -200,15 +218,17 @@ python3 pwmat_dielectric_parallel.py \
 不同能量必须使用不同的 `BASE_DIR`，否则 PID 文件锁和 `IN.OCC` 会冲突。
 
 ```bash
+module load python/3.8.3
+
 COMMON_SOURCE=/data/home/wangl/pwmat_auto_ops/sources
 
-python3 pwmat_dielectric_parallel.py \
+python pwmat_dielectric_parallel.py \
   --daemon \
   --base-dir /data/home/wangl/energy_A \
   --source-dir "$COMMON_SOURCE" \
   --max-parallel 2
 
-python3 pwmat_dielectric_parallel.py \
+python pwmat_dielectric_parallel.py \
   --daemon \
   --base-dir /data/home/wangl/energy_B \
   --source-dir "$COMMON_SOURCE" \
@@ -274,18 +294,26 @@ SBATCH_RETRY_SECONDS = 60.0
 
 ## 常见问题
 
-### 为什么必须使用 python3？
+### 为什么必须先 module load python/3.8.3？
 
-脚本使用 Python 3 的语法和类型注解。执行 `python` 如果实际指向 Python 2，会出现：
+脚本使用 Python 3 的语法和类型注解。必须先执行：
+
+```bash
+module load python/3.8.3
+```
+
+加载后 `python` 指向 Python 3.8.3。如果没有加载模块，默认的 `python` 可能指向
+Python 2，并出现：
 
 ```text
 SyntaxError: invalid syntax
 ```
 
-请使用：
+查看状态：
 
 ```bash
-python3 pwmat_dielectric_parallel.py --show-status
+module load python/3.8.3
+python pwmat_dielectric_parallel.py --show-status
 ```
 
 ### 状态文件不存在

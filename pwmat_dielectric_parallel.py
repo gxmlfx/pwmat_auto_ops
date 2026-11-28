@@ -1,18 +1,19 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Requires Python 3.8+. On MCloud, invoke this file with `python3`.
+# Requires Python 3.8+. On MCloud, run `module load python/3.8.3` first.
 """Parallel PWMAT dielectric-function workflow for MCloud/Slurm.
 
 The script keeps one time point's steps sequential, while different time points
 run in parallel. Every Slurm submission waits only for its own JobID. All file
 operations use an explicit working directory; os.chdir() is never used.
 
-Run a detached full calculation:
-    python3 pwmat_dielectric_parallel.py --daemon
+Run a detached calculation after loading the module:
+    module load python/3.8.3
+    python pwmat_dielectric_parallel.py --daemon
 
 Watch progress:
     tail -f "$BASE_DIR/logs/pwmat_parallel.log"
-    watch -n 5 'python3 pwmat_dielectric_parallel.py --show-status'
+    watch -n 5 'python pwmat_dielectric_parallel.py --show-status'
 """
 
 from __future__ import annotations
